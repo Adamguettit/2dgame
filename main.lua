@@ -12,7 +12,6 @@ local physics = require( "physics" )
 physics.start()
 physics.setGravity( 0, 25 ) 
 
-
 local playerBullets = {} 
 
 local leftWall = display.newRect( 0, display.contentHeight / 2, 1, display.contentHeight )
@@ -46,31 +45,6 @@ centerX = display.contentWidth * .5
 centerY = display.contentHeight * .5
 
 local playerBullets = {} -- Table that holds the players Bullets
-
-
-local dPad = display.newImage( "./assets/sprites/dpad.png" )
-dPad.x = 150
-dPad.y = display.contentHeight - 200
-dPad.alpha = 0.50
-dPad.id = "d-pad"
-
-
-local rightArrow = display.newImage( "./assets/sprites/rightArrow.png" )
-rightArrow.x = 260
-rightArrow.y = display.contentHeight - 200
-rightArrow.id = "right arrow"
-
-local leftArrow = display.newImage( "./assets/sprites/leftArrow.png" )
-leftArrow.x = 40
-leftArrow.y = display.contentHeight - 200
-leftArrow.id = "left arrow"
-
-
-local jumpButton = display.newImage( "./assets/sprites/jumpButton.png" )
-jumpButton.x = display.contentWidth - 80
-jumpButton.y = display.contentHeight - 200
-jumpButton.id = "jump button"
-jumpButton.alpha = 0.5
 
 --ninja
 local sheetOptionsIdle =
@@ -123,6 +97,31 @@ physics.addBody( ninja, "dynamic", {
 ninja.isFixedRotation = true 
 ninja:setSequence( "idle" )
 ninja:play()
+
+
+
+local dPad = display.newImage( "./assets/sprites/dpad.png" )
+dPad.x = 150
+dPad.y = display.contentHeight - 200
+dPad.alpha = 0.50
+dPad.id = "d-pad"
+
+
+local rightArrow = display.newImage( "./assets/sprites/rightArrow.png" )
+rightArrow.x = 260
+rightArrow.y = display.contentHeight - 200
+rightArrow.id = "right arrow"
+
+local leftArrow = display.newImage( "./assets/sprites/leftArrow.png" )
+leftArrow.x = 40
+leftArrow.y = display.contentHeight - 200
+leftArrow.id = "left arrow"
+
+local jumpButton = display.newImage( "./assets/sprites/jumpButton.png" )
+jumpButton.x = display.contentWidth - 250
+jumpButton.y = display.contentHeight - 80
+jumpButton.id = "shootButton"
+jumpButton.alpha = 0.5
 
 function rightArrow:touch( event )
     if ( event.phase == "ended" ) then
@@ -178,7 +177,15 @@ local sheetOptionsJump =
     numFrames = 10
 }
 local robotJump = graphics.newImageSheet( "./assets/spritesheets/robotJump.png", sheetOptionsJump )
-
+--------------------
+local sheetOptionsDead =
+{
+    width = 562,
+    height = 519,
+    numFrames = 10
+}
+local robotDead = graphics.newImageSheet( "./assets/spritesheets/robotDead.png", sheetOptionsDead )
+---------------------
 
 -- sequences table
 local sequence_data = {
@@ -198,6 +205,14 @@ local sequence_data = {
         time = 800,
         loopCount = 1,
         sheet = robotJump
+    },
+    {
+        name = "dead",
+        start = 1,
+        count = 10,
+        time = 800,
+        loopCount = 1,
+        sheet = robotDead
     }
 }
 
@@ -240,8 +255,8 @@ end
 --explostion
 
 local shootButton = display.newImage( "./assets/sprites/jumpButton.png" )
-shootButton.x = display.contentWidth - 250
-shootButton.y = display.contentHeight - 80
+shootButton.x = display.contentWidth - 100
+shootButton.y = display.contentHeight - 200
 shootButton.id = "shootButton"
 shootButton.alpha = 0.5
 
@@ -304,14 +319,16 @@ end
 local function onCollision( event )
  
     if ( event.phase == "began" ) then
- 
-        local obj1 = event.object1
+
+    	local obj1 = event.object1
         local obj2 = event.object2
         local whereCollisonOccurredX = obj1.x
         local whereCollisonOccurredY = obj1.y
 
         if ( ( obj1.id == "robot" and obj2.id == "bullet" ) or
              ( obj1.id == "bullet" and obj2.id == "robot" ) ) then
+            
+            
             
             -- remove the bullet
             local bulletCounter = nil
@@ -325,9 +342,8 @@ local function onCollision( event )
                 end
             end
 
-            --remove character
-            robot:removeSelf()
-            robot = nil
+            robot:setSequence("dead")
+            robot:play()
 
             -- make an explosion sound effect
             local expolsionSound = audio.loadStream( "./assets/sounds/8bit_bomb_explosion.wav" )
@@ -367,12 +383,16 @@ local function onCollision( event )
             emitter.x = whereCollisonOccurredX
             emitter.y = whereCollisonOccurredY
 
+            local function diing( event )
+            	robot:removeSelf()
+            robot = nil
         end
+        timer.performWithDelay( 500, diing)
     end
 end
+end
 
-
-
+            
 rightArrow:addEventListener( "touch", rightArrow )
 leftArrow:addEventListener( "touch", leftArrow )
 
